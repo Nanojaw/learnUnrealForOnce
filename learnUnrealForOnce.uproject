@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{7059A896-4184-506C-2F94-DCB2D6626A72}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "learnUnrealForOnce",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
