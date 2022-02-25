@@ -76,7 +76,6 @@ void AlearnUnrealForOnceCharacter::SetupPlayerInputComponent(class UInputCompone
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AlearnUnrealForOnceCharacter::OnResetVR);
 }
 
-
 void AlearnUnrealForOnceCharacter::OnResetVR()
 {
 	// If learnUnrealForOnce is added to a project via 'Add Feature' in the Unreal Editor the dependency on HeadMountedDisplay in learnUnrealForOnce.Build.cs is not automatically propagated
