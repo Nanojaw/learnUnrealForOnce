@@ -12,6 +12,13 @@
 //////////////////////////////////////////////////////////////////////////
 // AlearnUnrealForOnceCharacter
 
+void AlearnUnrealForOnceCharacter::testFunc()
+{
+	auto force = FVector(0, 0, 1);
+
+	GetCharacterMovement()->AddForce(force);
+}
+
 AlearnUnrealForOnceCharacter::AlearnUnrealForOnceCharacter()
 {
 	// Set size for collision capsule
@@ -57,9 +64,7 @@ void AlearnUnrealForOnceCharacter::SetupPlayerInputComponent(class UInputCompone
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	// Bind Push/Pull actions
-	PlayerInputComponent->BindAction("Push", IE_Repeat, this, &AlearnUnrealForOnceCharacter::Push);
-	PlayerInputComponent->BindAction("Pull", IE_Repeat, this, &AlearnUnrealForOnceCharacter::Pull);
+	PlayerInputComponent->BindAction("LeL", IE_Pressed, this, &AlearnUnrealForOnceCharacter::testFunc);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AlearnUnrealForOnceCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AlearnUnrealForOnceCharacter::MoveRight);

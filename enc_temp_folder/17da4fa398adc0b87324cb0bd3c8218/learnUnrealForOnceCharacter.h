@@ -58,9 +58,8 @@ protected:
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
-	/** Push/Pull */
-	void Push();
-	void Pull();
+	/** Test stuff */
+	void testFunc();
 
 protected:
 	// APawn interface
