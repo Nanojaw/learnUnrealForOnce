@@ -59,8 +59,7 @@ protected:
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
 	/** Push & Pull */
-	void Push();
-	void Pull();
+	void PushPull(float Rate);
 
 protected:
 	// APawn interface

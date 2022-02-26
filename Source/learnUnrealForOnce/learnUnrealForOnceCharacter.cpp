@@ -1,7 +1,10 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "learnUnrealForOnceCharacter.h"
+
+#include "DrawDebugHelpers.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
+#include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -58,8 +61,7 @@ void AlearnUnrealForOnceCharacter::SetupPlayerInputComponent(class UInputCompone
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	// Bind Push/Pull actions
-	PlayerInputComponent->BindAction("Push", IE_Repeat, this, &AlearnUnrealForOnceCharacter::Push);
-	PlayerInputComponent->BindAction("Pull", IE_Repeat, this, &AlearnUnrealForOnceCharacter::Pull);
+	PlayerInputComponent->BindAxis("PushPull", this, &AlearnUnrealForOnceCharacter::PushPull);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AlearnUnrealForOnceCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AlearnUnrealForOnceCharacter::MoveRight);
@@ -101,13 +103,35 @@ void AlearnUnrealForOnceCharacter::TouchStopped(ETouchIndex::Type FingerIndex, F
 		StopJumping();
 }
 
-void AlearnUnrealForOnceCharacter::Push()
+#pragma region Push & Pull
+
+void AlearnUnrealForOnceCharacter::PushPull(float Rate)
 {
+	if(Rate == 0) return;
+
+	FHitResult OutHit;
+
+	FVector Start = FollowCamera->GetComponentLocation() + (FollowCamera->GetForwardVector() * 200);
+	FVector End = Start + (FollowCamera->GetForwardVector() * 4200);
+
+	FCollisionQueryParams TraceParams(TEXT("LineOfSight_Trace"), false, this);
+
+	GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 2, 0, 2.0f);
+
+	auto HitObj = OutHit.GetActor();
+	if (HitObj) 
+	{
+		if (HitObj->IsRootComponentMovable()) 
+		{
+			UStaticMeshComponent* MeshRootComp = Cast<UStaticMeshComponent>(HitObj->GetRootComponent());
+
+			MeshRootComp->AddForce(FollowCamera->GetForwardVector() * 1500 * MeshRootComp->GetMass() * Rate);
+		}
+	}
 }
 
-void AlearnUnrealForOnceCharacter::Pull()
-{
-}
+#pragma endregion
 
 void AlearnUnrealForOnceCharacter::TurnAtRate(float Rate)
 {
