@@ -58,7 +58,7 @@ protected:
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
-	/** Push/Pull */
+	/** Push & Pull */
 	void Push();
 	void Pull();
 

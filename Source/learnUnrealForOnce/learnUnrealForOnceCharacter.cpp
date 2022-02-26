@@ -27,7 +27,7 @@ AlearnUnrealForOnceCharacter::AlearnUnrealForOnceCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->bUseControllerDesiredRotation = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
@@ -99,6 +99,14 @@ void AlearnUnrealForOnceCharacter::TouchStarted(ETouchIndex::Type FingerIndex, F
 void AlearnUnrealForOnceCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
 		StopJumping();
+}
+
+void AlearnUnrealForOnceCharacter::Push()
+{
+}
+
+void AlearnUnrealForOnceCharacter::Pull()
+{
 }
 
 void AlearnUnrealForOnceCharacter::TurnAtRate(float Rate)
