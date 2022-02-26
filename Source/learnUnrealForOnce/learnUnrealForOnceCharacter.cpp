@@ -126,7 +126,7 @@ void AlearnUnrealForOnceCharacter::PushPull(float Rate)
 		{
 			UStaticMeshComponent* MeshRootComp = Cast<UStaticMeshComponent>(HitObj->GetRootComponent());
 
-			MeshRootComp->AddForce(FollowCamera->GetForwardVector() * 1500 * MeshRootComp->GetMass() * Rate);
+			MeshRootComp->AddForce(FollowCamera->GetForwardVector() * 2000 * MeshRootComp->GetMass() * Rate);
 		}
 	}
 }
