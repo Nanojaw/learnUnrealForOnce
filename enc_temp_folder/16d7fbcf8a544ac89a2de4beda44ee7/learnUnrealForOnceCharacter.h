@@ -61,9 +61,6 @@ protected:
 	/** Push & Pull */
 	void PushPull(float Rate);
 
-	/** Grab */
-	void Grab(float Rate);
-
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
