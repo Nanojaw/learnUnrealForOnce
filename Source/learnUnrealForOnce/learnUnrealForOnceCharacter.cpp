@@ -62,10 +62,7 @@ void AlearnUnrealForOnceCharacter::SetupPlayerInputComponent(class UInputCompone
 
 	// Bind Push/Pull actions
 	PlayerInputComponent->BindAxis("PushPull", this, &AlearnUnrealForOnceCharacter::PushPull);
-
-	// Grab action
-	PlayerInputComponent->BindAxis("Grab", this, &AlearnUnrealForOnceCharacter::Grab);
-
+	
 	PlayerInputComponent->BindAxis("MoveForward", this, &AlearnUnrealForOnceCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AlearnUnrealForOnceCharacter::MoveRight);
 
@@ -105,32 +102,6 @@ void AlearnUnrealForOnceCharacter::TouchStopped(ETouchIndex::Type FingerIndex, F
 {
 		StopJumping();
 }
-
-#pragma region Grab
-
-void AlearnUnrealForOnceCharacter::Grab(float Rate)
-{
-	if (Rate == 0) return;
-
-	FHitResult OutHit;
-
-	FVector Start = FollowCamera->GetComponentLocation() + (FollowCamera->GetForwardVector() * 200);
-	FVector End = Start + (FollowCamera->GetForwardVector() * 5000);
-
-	FCollisionQueryParams TraceParams(TEXT("LineOfSight_Trace"), false, this);
-
-	GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
-	//DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 2, 0, 2.0f);
-
-	auto HitObj = OutHit.GetActor();
-	if (HitObj)
-	{
-		HitObj->
-	}
-}
-
-
-#pragma endregion
 
 #pragma region Push & Pull
 
