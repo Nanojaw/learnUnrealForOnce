@@ -18,6 +18,15 @@ class AlearnUnrealForOnceCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	/** Grabbed components will snap to this */
+	UPROPERTY(EditDefaultsOnly, Category = Components)
+	class USceneComponent* GrabbedObjectLocation;
+
+	int ClickTimes;
+	bool Grabbing;
+	int DistanceMultiplier;
+	
 public:
 	AlearnUnrealForOnceCharacter();
 
@@ -30,7 +39,20 @@ public:
 	float BaseLookUpRate;
 
 protected:
+	/** Fire/UnFire */
+	void GrabRelease();
+	void OnPickup();
+	void OnDrop();
 
+	void SetGrabbedObject(UPrimitiveComponent* ObjectToGrab);
+
+	UPROPERTY()
+	UPrimitiveComponent* GrabbedObject;
+
+	/** Scroll distance */
+	void ScrollUpp();
+	void ScrollDown();
+	
 	/** Resets HMD orientation in VR. */
 	void OnResetVR();
 

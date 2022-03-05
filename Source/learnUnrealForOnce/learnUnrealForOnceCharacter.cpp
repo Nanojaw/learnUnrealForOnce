@@ -17,10 +17,12 @@
 
 AlearnUnrealForOnceCharacter::AlearnUnrealForOnceCharacter()
 {
+	ClickTimes = 1;
+	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
-	// set our turn rates for input
+	// Set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
@@ -48,7 +50,81 @@ AlearnUnrealForOnceCharacter::AlearnUnrealForOnceCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+
+	GrabbedObjectLocation = CreateDefaultSubobject<USceneComponent>(TEXT("GrabbedObjectLocation"));
+	GrabbedObjectLocation->SetupAttachment(FollowCamera);
+
+	DistanceMultiplier = 50.f;
 }
+
+#pragma region GrabRelease
+
+void AlearnUnrealForOnceCharacter::GrabRelease()
+{
+	ClickTimes++;
+	
+	if (ClickTimes == 2)
+	{
+		ClickTimes = 0;
+		OnDrop();
+		
+		return;
+	}
+
+	OnPickup();
+}
+
+void AlearnUnrealForOnceCharacter::OnPickup()
+{
+	const FCollisionQueryParams QueryParams("GravityGunTrace", false, this);
+	const float TraceRange = 250000.f;
+	const FVector StartTrace = FollowCamera->GetComponentLocation();
+	const FVector EndTrace = (FollowCamera->GetForwardVector() * TraceRange) + StartTrace;
+	FHitResult Hit;
+
+	if (GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, ECC_Visibility, QueryParams))
+	{
+		if (UPrimitiveComponent* Prim = Hit.GetComponent())
+		{
+			if (Prim->IsSimulatingPhysics())
+			{
+				GrabbedObjectLocation->SetWorldLocation((GetFollowCamera()->GetForwardVector() * Hit.Distance) + GrabbedObjectLocation->GetComponentLocation());
+				
+				SetGrabbedObject(Prim);
+
+				Grabbing = true;
+			}
+		}
+	}
+}
+
+void AlearnUnrealForOnceCharacter::OnDrop()
+{
+	if (GrabbedObject)
+	{
+		GrabbedObjectLocation->SetRelativeLocation(FVector(0, 0, 0));
+		
+		GrabbedObject->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		GrabbedObject->SetSimulatePhysics(true);
+
+		SetGrabbedObject(nullptr);
+
+		Grabbing = false;
+	}
+}
+
+void AlearnUnrealForOnceCharacter::SetGrabbedObject(UPrimitiveComponent* ObjectToGrab)
+{
+	GrabbedObject = ObjectToGrab;
+
+	if (GrabbedObject)
+	{
+		GrabbedObject->SetSimulatePhysics(false);
+		GrabbedObject->AttachToComponent(GrabbedObjectLocation, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	}
+}
+
+#pragma endregion
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -62,7 +138,15 @@ void AlearnUnrealForOnceCharacter::SetupPlayerInputComponent(class UInputCompone
 
 	// Bind Push/Pull actions
 	PlayerInputComponent->BindAxis("PushPull", this, &AlearnUnrealForOnceCharacter::PushPull);
+
+	// Bind Grab/Release actions
+	PlayerInputComponent->BindAction("GrabRelease", IE_Pressed, this, &AlearnUnrealForOnceCharacter::GrabRelease);
+
+	// Bind mouse scroll
+	PlayerInputComponent->BindAction("DistanceIncrease", IE_Pressed, this, &AlearnUnrealForOnceCharacter::ScrollUpp);
+	PlayerInputComponent->BindAction("DistanceDecrease", IE_Pressed, this, &AlearnUnrealForOnceCharacter::ScrollDown);
 	
+	// Bind movement Axis
 	PlayerInputComponent->BindAxis("MoveForward", this, &AlearnUnrealForOnceCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AlearnUnrealForOnceCharacter::MoveRight);
 
@@ -81,6 +165,26 @@ void AlearnUnrealForOnceCharacter::SetupPlayerInputComponent(class UInputCompone
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AlearnUnrealForOnceCharacter::OnResetVR);
 }
+
+#pragma region Scroll distance
+
+void AlearnUnrealForOnceCharacter::ScrollUpp()
+{
+	if (Grabbing)
+	{
+		GrabbedObjectLocation->SetWorldLocation((GetFollowCamera()->GetForwardVector() * DistanceMultiplier) + GrabbedObjectLocation->GetComponentLocation());
+	}
+}
+
+void AlearnUnrealForOnceCharacter::ScrollDown()
+{
+	if (Grabbing)
+	{
+		GrabbedObjectLocation->SetWorldLocation((GetFollowCamera()->GetForwardVector() * -DistanceMultiplier) + GrabbedObjectLocation->GetComponentLocation());
+	}
+}
+
+#pragma endregion
 
 void AlearnUnrealForOnceCharacter::OnResetVR()
 {
