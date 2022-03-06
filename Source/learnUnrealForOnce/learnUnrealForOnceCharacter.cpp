@@ -93,11 +93,21 @@ void AlearnUnrealForOnceCharacter::OnPickup()
 		{
 			if (Prim->IsSimulatingPhysics())
 			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Prim->GetPhysicsAngularVelocityInDegrees().ToString());
+
+				Prim->AddImpulse(FVector(0, 0, 1000) * Prim->GetMass());
+				Prim->AddTorqueInDegrees(FVector(1000, 100, 100));
+
 				GrabbedObjectLocation->SetWorldLocation((GetFollowCamera()->GetForwardVector() * Hit.Distance) + GrabbedObjectLocation->GetComponentLocation());
-				
+
+				/*
+				//Cancel movement
+				Prim->AddImpulse(-(Prim->GetComponentVelocity() * Prim->GetMass()));
+
 				SetGrabbedObject(Prim);
 
 				Grabbing = true;
+				*/
 			}
 		}
 	}
