@@ -23,7 +23,7 @@ class AlearnUnrealForOnceCharacter : public ACharacter
 	UPROPERTY(EditDefaultsOnly, Category = Components)
 	class USceneComponent* GrabbedObjectLocation;
 
-	float LastClick;
+	int ClickTimes;
 	bool Grabbing;
 	int DistanceMultiplier;
 	
@@ -40,10 +40,9 @@ public:
 
 protected:
 	/** Fire/UnFire */
-	void GrabRelease(float Rate);
+	void GrabRelease();
 	void OnPickup();
 	void OnDrop();
-
 
 	void SetGrabbedObject(UPrimitiveComponent* ObjectToGrab);
 
@@ -51,7 +50,7 @@ protected:
 	UPrimitiveComponent* GrabbedObject;
 
 	/** Scroll distance */
-	void ScrollUp();
+	void ScrollUpp();
 	void ScrollDown();
 	
 	/** Resets HMD orientation in VR. */

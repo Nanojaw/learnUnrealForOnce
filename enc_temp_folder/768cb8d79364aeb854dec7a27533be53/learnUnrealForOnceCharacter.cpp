@@ -17,7 +17,7 @@
 
 AlearnUnrealForOnceCharacter::AlearnUnrealForOnceCharacter()
 {
-	LastClick = 0;
+	ClickTimes = 1;
 	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -59,24 +59,19 @@ AlearnUnrealForOnceCharacter::AlearnUnrealForOnceCharacter()
 
 #pragma region GrabRelease
 
-void AlearnUnrealForOnceCharacter::GrabRelease(float Rate)
+void AlearnUnrealForOnceCharacter::GrabRelease()
 {
-	if (Rate == 1 && LastClick == 0 && !Grabbing)
+	ClickTimes++;
+	
+	if (ClickTimes == 2)
 	{
-		OnPickup();
-		LastClick = Rate;
-		return;
-	}
-
-	if (Rate == 1 && LastClick == 0 && Grabbing)
-	{
+		ClickTimes = 0;
 		OnDrop();
-		LastClick = Rate;
+		
 		return;
 	}
 
-	if(Grabbing) SetGrabbedObject(GrabbedObject);
-	LastClick = Rate;
+	OnPickup();
 }
 
 void AlearnUnrealForOnceCharacter::OnPickup()
@@ -108,7 +103,9 @@ void AlearnUnrealForOnceCharacter::OnDrop()
 	if (GrabbedObject)
 	{
 		GrabbedObjectLocation->SetRelativeLocation(FVector(0, 0, 0));
-		GrabbedObject->SetEnableGravity(true);
+		
+		GrabbedObject->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		GrabbedObject->SetSimulatePhysics(true);
 
 		SetGrabbedObject(nullptr);
 
@@ -119,10 +116,11 @@ void AlearnUnrealForOnceCharacter::OnDrop()
 void AlearnUnrealForOnceCharacter::SetGrabbedObject(UPrimitiveComponent* ObjectToGrab)
 {
 	GrabbedObject = ObjectToGrab;
+
 	if (GrabbedObject)
 	{
-		if(GrabbedObject->IsGravityEnabled()) GrabbedObject->SetEnableGravity(false);
-		GrabbedObject->SetWorldLocation(GrabbedObjectLocation->GetComponentLocation(), true);
+		GrabbedObject->SetSimulatePhysics(false);
+		GrabbedObject->AttachToComponent(GrabbedObjectLocation, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	}
 }
 
@@ -142,10 +140,10 @@ void AlearnUnrealForOnceCharacter::SetupPlayerInputComponent(class UInputCompone
 	PlayerInputComponent->BindAxis("PushPull", this, &AlearnUnrealForOnceCharacter::PushPull);
 
 	// Bind Grab/Release actions
-	PlayerInputComponent->BindAxis("GrabRelease", this, &AlearnUnrealForOnceCharacter::GrabRelease);
+	PlayerInputComponent->BindAction("GrabRelease", IE_Pressed, this, &AlearnUnrealForOnceCharacter::GrabRelease);
 
 	// Bind mouse scroll
-	PlayerInputComponent->BindAction("DistanceIncrease", IE_Pressed, this, &AlearnUnrealForOnceCharacter::ScrollUp);
+	PlayerInputComponent->BindAction("DistanceIncrease", IE_Pressed, this, &AlearnUnrealForOnceCharacter::ScrollUpp);
 	PlayerInputComponent->BindAction("DistanceDecrease", IE_Pressed, this, &AlearnUnrealForOnceCharacter::ScrollDown);
 	
 	// Bind movement Axis
@@ -170,7 +168,7 @@ void AlearnUnrealForOnceCharacter::SetupPlayerInputComponent(class UInputCompone
 
 #pragma region Scroll distance
 
-void AlearnUnrealForOnceCharacter::ScrollUp()
+void AlearnUnrealForOnceCharacter::ScrollUpp()
 {
 	if (Grabbing)
 	{
@@ -225,13 +223,14 @@ void AlearnUnrealForOnceCharacter::PushPull(float Rate)
 	GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
 	//DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 2, 0, 2.0f);
 
-	if (auto HitObj = OutHit.GetActor())
+	auto HitObj = OutHit.GetActor();
+	if (HitObj) 
 	{
 		if (HitObj->IsRootComponentMovable()) 
 		{
 			UStaticMeshComponent* MeshRootComp = Cast<UStaticMeshComponent>(HitObj->GetRootComponent());
 
-			MeshRootComp->AddForce(FollowCamera->GetForwardVector() * 2000 * MeshRootComp->GetMass() * Rate);
+			MeshRootComp->AddForce(GetCapsuleComponent()->GetForwardVector() * 2000 * MeshRootComp->GetMass() * Rate);
 		}
 	}
 }
