@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "learnUnrealForOnceCharacter.generated.h"
 
 UCLASS(config=Game)
@@ -18,6 +19,18 @@ class AlearnUnrealForOnceCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	/** Stuff with Gravity Gun */
+
+public:
+	// PhysicsHandler
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	UPhysicsHandleComponent* PhysicsHandler;
+
+	// GrabbedObjectLocation
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	USceneComponent* GrabbedObjectLocation;
+
 public:
 	AlearnUnrealForOnceCharacter();
 
@@ -60,6 +73,11 @@ protected:
 
 	/** Push & Pull */
 	void PushPull(float Rate);
+
+	/*Grab release */
+	void Grab();
+	void Release();
+	void mouseScroll(float Rate);
 
 protected:
 	// APawn interface

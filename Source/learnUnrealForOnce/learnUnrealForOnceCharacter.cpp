@@ -2,6 +2,8 @@
 
 #include "learnUnrealForOnceCharacter.h"
 
+#include <string>
+
 #include "DrawDebugHelpers.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Blueprint/UserWidget.h"
@@ -11,6 +13,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AlearnUnrealForOnceCharacter
@@ -48,6 +51,11 @@ AlearnUnrealForOnceCharacter::AlearnUnrealForOnceCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+
+	PhysicsHandler = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandler"));
+
+	GrabbedObjectLocation = CreateDefaultSubobject<USceneComponent>(TEXT("GrabbedObjectLocation"));
+	GrabbedObjectLocation->SetupAttachment(FollowCamera);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -62,7 +70,12 @@ void AlearnUnrealForOnceCharacter::SetupPlayerInputComponent(class UInputCompone
 
 	// Bind Push/Pull actions
 	PlayerInputComponent->BindAxis("PushPull", this, &AlearnUnrealForOnceCharacter::PushPull);
-	
+
+	//Bind Grab/Release actions
+	PlayerInputComponent->BindAction("GrabRelease", IE_Pressed, this, &AlearnUnrealForOnceCharacter::Grab);
+	PlayerInputComponent->BindAction("GrabRelease", IE_Released, this, &AlearnUnrealForOnceCharacter::Release);
+	PlayerInputComponent->BindAxis("ScrollWheel", this, &AlearnUnrealForOnceCharacter::mouseScroll);
+
 	PlayerInputComponent->BindAxis("MoveForward", this, &AlearnUnrealForOnceCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AlearnUnrealForOnceCharacter::MoveRight);
 
@@ -102,6 +115,45 @@ void AlearnUnrealForOnceCharacter::TouchStopped(ETouchIndex::Type FingerIndex, F
 {
 		StopJumping();
 }
+
+#pragma region GrabRelease
+
+void AlearnUnrealForOnceCharacter::Grab()
+{
+	FHitResult HitResult;
+
+	constexpr float TraceRange = 250000000.f;
+	const FVector StartTraceLocation = FollowCamera->GetComponentLocation();
+	const FVector EndTraceLocation = (FollowCamera->GetForwardVector() * TraceRange) + StartTraceLocation;
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartTraceLocation, EndTraceLocation, ECC_Visibility))
+	{
+		if (UPrimitiveComponent* HitObject = HitResult.GetComponent())
+		{
+			if (HitObject->IsSimulatingPhysics())
+			{
+				GrabbedObjectLocation->SetWorldLocation(HitObject->GetComponentLocation());
+
+				PhysicsHandler->GrabComponentAtLocation(HitObject, "None", GrabbedObjectLocation->GetComponentLocation());
+			}
+		}
+	}
+}
+
+void AlearnUnrealForOnceCharacter::Release()
+{
+	PhysicsHandler->ReleaseComponent();
+}
+
+void AlearnUnrealForOnceCharacter::mouseScroll(float Rate)
+{
+	auto newPosition = (FollowCamera->GetForwardVector() * (Rate * 50.f)) + GrabbedObjectLocation->GetComponentLocation();
+
+	GrabbedObjectLocation->SetWorldLocation(newPosition);
+}
+
+
+#pragma endregion
 
 #pragma region Push & Pull
 
